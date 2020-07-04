@@ -18,4 +18,5 @@ selenium-debug.log
 
 /node/node_modules/
 /web/node_modules
+/koaapp/node_modules/
 /web/dist/
