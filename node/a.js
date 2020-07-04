@@ -5,8 +5,12 @@ const co = require("co-mysql");
 const fs = require("fs");
 const path = require("path");
 const koaBody = require("koa-body");
+const cors = require("koa2-cors");
 
 let server = new Koa();
+
+// 处理跨域，放到中间件的最前面
+server.use(cors());
 const router = new Router();
 server.use(koaBody({ multipart: true }));
 server.use(require("koa-static")(__dirname + "/public"));
@@ -19,36 +23,34 @@ let conn = mysql.createPool({
 });
 server.context.db = co(conn);
 
-server.use(async (ctx, next) => {
-  ctx.set("Access-Control-Allow-Origin", "*");
-  ctx.set(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Content-Length, Authorization, Accept, X-Requested-With, Current-Page"
-  );
-  ctx.set("Access-Control-Allow-Methods", "PUT, POST, GET, DELETE, OPTIONS");
-  await next();
-});
+// server.use(async (ctx, next) => {
+//   ctx.set("Access-Control-Allow-Origin", "*");
+//   ctx.set(
+//     "Access-Control-Allow-Headers",
+//     "Content-Type, Content-Length, Authorization, Accept, X-Requested-With, Current-Page"
+//   );
+//   ctx.set("Access-Control-Allow-Methods", "PUT, POST, GET, DELETE, OPTIONS");
+//   await next();
+// });
 
 router.post("/upload", async (ctx, next) => {
   const file = ctx.request.body.file;
   let result = [];
   file.forEach((v) => {
     result.push("http://localhost:5000/upload/" + v.name);
+    // const reader = fs.createReadStream('v.name');
+    // const upStream = fs.createWriteStream(
+    //   path.join(__dirname, "public/upload" + `/${v.name}`),
+    //   {
+    //     flags: "w", // 默认读取
+    //     encoding: "utf8", // 默认utf8
+    //   }
+    // );
+    // reader.pipe(upStream);
   });
-  console.log(file);
-  // const reader = fs.createReadStream(file.url);
-  // const reader = fs.createReadStream('avatar.jepg');
-  // const upStream = fs.createWriteStream(
-  //   path.join(__dirname, "public/upload" + `/${file.name}`),
-  //   {
-  //     flags: "w", // 默认读取
-  //     encoding: "utf8", // 默认utf8
-  //   }
-  // );
-  // reader.pipe(upStream);
   ctx.body = {
     code: 0,
-    msg: "上传成功",
+    msg: "",
     fileUrl: result, //返回文件名
   };
 });
@@ -128,7 +130,7 @@ router.post("/login", async (ctx, next) => {
 
 router.post("/addBlog", async (ctx, next) => {
   let { title, content, userId, fileUrl } = ctx.request.body;
-  fileUrl = fileUrl.join(",");
+  fileUrl = fileUrl ? fileUrl.join(",") : "";
   try {
     ctx.db.query(
       "insert into blog (title, content, fileUrl, user_id) values (?, ?, ?,?)",
@@ -146,12 +148,28 @@ router.post("/addBlog", async (ctx, next) => {
   }
 });
 
+router.post("/delBlog", async (ctx, next) => {
+  let { id } = ctx.request.body;
+  try {
+    ctx.db.query("delete from blog where id = ?", [id]);
+    ctx.body = {
+      code: 0,
+      msg: "删除成功",
+    };
+  } catch (e) {
+    ctx.body = {
+      code: -1,
+      msg: e + "",
+    };
+  }
+});
+
 function getBlogs(ctx) {
   return new Promise((resolve, reject) => {
     let { pageNo } = ctx.query;
     let start = (pageNo - 1) * 10;
     let list = ctx.db.query(
-      "select blog.*,user.name as userName from blog,user where blog.user_id=user.id order by cast(create_time as datetime) desc limit ?, 10",
+      "select blog.*,user.name as userName from blog,user where blog.user_id=user.id order by is_top desc,cast(create_time as datetime) desc limit ?, 10",
       [start]
     );
     resolve(list);
@@ -190,6 +208,15 @@ router.get("/blog", async (ctx, next) => {
   ctx.body = {
     code: 0,
     data: list[0],
+  };
+});
+
+router.get("/toTop", async (ctx, next) => {
+  let { id } = ctx.query;
+  ctx.db.query("update blog set is_top='1' where id=?", [id]);
+  ctx.body = {
+    code: 0,
+    msg: "置顶成功",
   };
 });
 

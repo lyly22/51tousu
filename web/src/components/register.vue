@@ -1,6 +1,6 @@
 <template>
   <div class="register">
-    <img src="../assets/logo.png" width="250" />
+    <img src="../assets/logo.png" width="300" />
     <el-row>
       <el-col :span="12" :offset="6">
         <el-form ref="ruleForm" label-width="80px" :model="ruleForm" :rules="rules">
@@ -26,6 +26,7 @@
 <script>
 import axios from "axios";
 import qs from "qs";
+import { register } from "@/api/user.js";
 export default {
   name: "register",
   data() {
@@ -54,20 +55,10 @@ export default {
       let that = this;
       this.$refs["ruleForm"].validate(valid => {
         if (valid) {
-          axios
-            .post("http://127.0.0.1:5000/register", qs.stringify(this.ruleForm))
+          register(this.ruleForm)
             .then(function(res) {
-              if (res.data.code === 0) {
-                that.$message({
-                  message: res.data.msg,
-                  type: "success"
-                });
+              if (res.code === 0) {
                 that.$router.push({ path: "/login" });
-              } else {
-                that.$message({
-                  message: res.data.msg,
-                  type: "error"
-                });
               }
             })
             .catch(function(err) {
@@ -87,7 +78,7 @@ export default {
 <style scoped lang='less'>
 .register {
   img {
-    margin-bottom: 50px;
+    margin-bottom: 10px;
   }
   text-align: center;
 }

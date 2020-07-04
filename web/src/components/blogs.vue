@@ -2,9 +2,9 @@
   <div class="blogs">
     <el-row class="mt-10">
       <el-col :span="22">
-        <img src="../assets/logo.png" width="100" />
+        <img src="../assets/logo.png" width="150" />
       </el-col>
-      <el-col :span="2" class='mt20'>
+      <el-col :span="2" class="mt20">
         <el-button round size="medium" @click="toLogin" v-if="!userName">登录</el-button>
         <el-dropdown @command="logOut" placement="bottom" v-else>
           <div class="avatar">
@@ -17,17 +17,38 @@
         </el-dropdown>
       </el-col>
     </el-row>
-    <el-row>
+    <el-row class="top-50">
       <el-col :span="22" :offset="1">
         <el-button type="primary" round size="medium" @click="add" class="createBtn">我要投诉</el-button>
         <el-table :data="list" style="width: 100%">
           <el-table-column prop="title" label="标题" width="280"></el-table-column>
-          <el-table-column prop="content" label="内容" width="580"></el-table-column>
-          <el-table-column prop="create_time" label="时间" width="200"></el-table-column>
+          <el-table-column prop="content" label="内容" width="520"></el-table-column>
+          <el-table-column prop="create_time" label="时间" width="160"></el-table-column>
           <el-table-column prop="userName" label="用户"></el-table-column>
-          <el-table-column label="操作" width="100">
+          <el-table-column label="操作" width="180">
             <template slot-scope="scope">
               <el-button @click="detail(scope.row)" type="text" size="small">查看</el-button>
+              <el-popconfirm
+                title="确定删除吗？"
+                @onConfirm="del(scope.row)"
+                v-show="scope.row.user_id==userId"
+              >
+                <el-button slot="reference" type="text">删除</el-button>
+              </el-popconfirm>
+              <el-button class="flag" type="text" v-show="scope.row.is_top=='1'">
+                已置顶
+                <i class="el-icon-s-flag"></i>
+              </el-button>
+              <el-popconfirm
+                title="确定置顶吗？"
+                @onConfirm="toTop(scope.row)"
+                v-show="scope.row.user_id==userId && scope.row.is_top=='0'"
+              >
+                <el-button slot="reference" type="text">
+                  置顶
+                  <i class="el-icon-top"></i>
+                </el-button>
+              </el-popconfirm>
             </template>
           </el-table-column>
         </el-table>
@@ -47,8 +68,7 @@
 <script>
 import addBlog from "./addBlog";
 import blog from "./blog";
-import axios from "axios";
-import qs from "qs";
+import { getBlogs, delBlog, toTop } from "@/api/blog.js";
 import { dateFormat } from "../js/util";
 export default {
   name: "blogs",
@@ -61,7 +81,7 @@ export default {
       list: [],
       isShowAdd: false,
       isShowBlog: false,
-      id: "",
+      id: null,
       currentPage: 1,
       total: 0
     };
@@ -69,6 +89,9 @@ export default {
   computed: {
     userName() {
       return localStorage.getItem("userName");
+    },
+    userId() {
+      return localStorage.getItem("userId");
     }
   },
   mounted() {
@@ -83,18 +106,43 @@ export default {
       this.id = v.id;
       this.isShowBlog = true;
     },
-    getList() {
+    del(v) {
       let that = this;
-      axios
-        .get("http://127.0.0.1:5000/blogs", {
-          params: {
-            pageNo: this.currentPage
+      delBlog({
+        id: v.id
+      })
+        .then(function(res) {
+          if (res.code === 0) {
+            that.getList();
           }
         })
+        .catch(function(err) {
+          console.log(err);
+        });
+    },
+    toTop(v) {
+      let that = this;
+      toTop({
+        id: v.id
+      })
         .then(function(res) {
-          if (res.data.code === 0) {
-            that.list = res.data.result.list;
-            that.total = res.data.result.total;
+          if (res.code === 0) {
+            that.getList();
+          }
+        })
+        .catch(function(err) {
+          console.log(err);
+        });
+    },
+    getList() {
+      let that = this;
+      getBlogs({
+        pageNo: this.currentPage
+      })
+        .then(function(res) {
+          if (res.code === 0) {
+            that.list = res.result.list;
+            that.total = res.result.total;
             that.list.forEach(v => {
               v.create_time = dateFormat(
                 "YYYY-mm-dd HH:MM",
@@ -104,11 +152,6 @@ export default {
                 v.content.length > 36
                   ? v.content.substr(0, 36) + "……"
                   : v.content;
-            });
-          } else {
-            that.$message({
-              message: res.data.msg,
-              type: "error"
             });
           }
         })
@@ -147,7 +190,7 @@ export default {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style lang='less' scoped>
+<style lang='less'>
 .blogs {
   position: relative;
   .right {
@@ -173,6 +216,10 @@ export default {
     span {
       margin-left: 10px;
     }
+  }
+  .flag {
+    color: red;
+    font-weight: bold;
   }
 }
 </style>

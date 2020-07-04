@@ -1,6 +1,6 @@
 <template>
   <div class="login">
-    <img src="../assets/logo.png" width="200" />
+    <img src="../assets/logo.png" width="300" />
     <el-row>
       <el-col :span="12" :offset="6">
         <el-form ref="ruleForm" label-width="80px" :model="ruleForm" :rules="rules">
@@ -11,7 +11,9 @@
             <el-input v-model="ruleForm.pwd"></el-input>
           </el-form-item>
           <el-button type="primary" round @click="submit">登录</el-button>
-          <router-link to="/register"><el-button type="text">注册</el-button></router-link>
+          <router-link to="/register">
+            <el-button type="text">注册</el-button>
+          </router-link>
         </el-form>
       </el-col>
     </el-row>
@@ -19,8 +21,8 @@
 </template>
 
 <script>
-import axios from "axios";
-import qs from "qs";
+import { login } from "@/api/user.js";
+
 export default {
   name: "login",
   data() {
@@ -40,22 +42,12 @@ export default {
       let that = this;
       this.$refs["ruleForm"].validate(valid => {
         if (valid) {
-          axios
-            .post("http://127.0.0.1:5000/login", qs.stringify(this.ruleForm))
-            .then(function(res) {
-              if (res.data.code === 0) {
-                that.$message({
-                  message: res.data.msg,
-                  type: "success"
-                });
-                localStorage.setItem("userId", res.data.userId);
-                localStorage.setItem("userName", res.data.userName);
+          login(this.ruleForm)
+            .then(res => {
+              if (res.code === 0) {
+                localStorage.setItem("userId", res.userId);
+                localStorage.setItem("userName", res.userName);
                 that.$router.push({ path: "/blogs" });
-              } else {
-                that.$message({
-                  message: res.data.msg,
-                  type: "error"
-                });
               }
             })
             .catch(function(err) {
@@ -75,7 +67,7 @@ export default {
 <style scoped lang='less'>
 .login {
   img {
-    margin-bottom: 50px;
+    margin-bottom: 10px;
   }
   text-align: center;
 }

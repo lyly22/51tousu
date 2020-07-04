@@ -5,10 +5,10 @@
       <el-col :span="12" :offset="6">
         <el-form label-width="80px" :model="formLabelAlign" ref="form" :rules="rules">
           <el-form-item label="标题" prop="title">
-            <el-input v-model="formLabelAlign.title"></el-input>
+            <el-input v-model="formLabelAlign.title" maxlength="50"></el-input>
           </el-form-item>
           <el-form-item label="内容" prop="content">
-            <el-input type="textarea" :rows="10" v-model="formLabelAlign.content"></el-input>
+            <el-input type="textarea" :rows="10" v-model="formLabelAlign.content" maxlength="500"></el-input>
           </el-form-item>
           <el-form-item label="上传文件">
             <el-upload
@@ -52,8 +52,8 @@
 </template>
 
 <script>
-import axios from "axios";
-import qs from "qs";
+import { upload, addBlog } from "@/api/blog.js";
+
 export default {
   name: "addBlog",
   data() {
@@ -77,63 +77,51 @@ export default {
       this.dialogImageUrl = file.url;
       this.dialogVisible = true;
     },
-    submit() {
+    upload() {
+      let that = this;
+      return upload({ file: this.fileList })
+        .then(res => {
+          if (res.code === 0) {
+            that.formLabelAlign.fileUrl = res.fileUrl;
+          }
+        })
+        .catch(function(err) {
+          console.log(err);
+          return;
+        });
+    },
+    async submit() {
+      if (this.fileList.length > 0) {
+        await this.upload();
+      }
+      let that = this;
       this.$refs["form"].validate(valid => {
-        let that = this;
-        // var param = new FormData();
-        // param.append("file", this.file);
-        // axios.post("http://127.0.0.1:5000/upload", param, {
-        //   headers: { "Content-Type": "multipart/form-data" }
-        // });
-        axios
-          .post(
-            "http://127.0.0.1:5000/upload",
-            qs.stringify({
-              file: this.fileList
+        if (valid) {
+          addBlog(
+            Object.assign(this.formLabelAlign, {
+              userId: localStorage.getItem("userId")
             })
           )
-          .then(res => {
-            if (res.data.code === 0) {
-              this.formLabelAlign.fileUrl = res.data.fileUrl;
-              axios
-                .post(
-                  "http://127.0.0.1:5000/addBlog",
-                  qs.stringify(
-                    Object.assign(this.formLabelAlign, {
-                      userId: localStorage.getItem("userId")
-                    })
-                  )
-                )
-                .then(function(res) {
-                  if (res.data.code === 0) {
-                    that.$message({
-                      message: res.data.msg,
-                      type: "success"
-                    });
-                    that.close();
-                    that.$emit("getList");
-                  } else {
-                    that.$message({
-                      message: res.data.msg,
-                      type: "error"
-                    });
-                  }
-                })
-                .catch(function(err) {
-                  console.log(err);
-                });
-            }
-          })
-          .catch(function(err) {
-            console.log(err);
-            return;
-          });
+            .then(function(res) {
+              if (res.code === 0) {
+                that.close();
+                that.$emit("getList");
+              }
+            })
+            .catch(function(err) {
+              console.log(err);
+            });
+        } else {
+          console.log("error submit!!");
+          return false;
+        }
       });
     },
     close() {
       this.cancelVisible = false;
       this.$refs.form.resetFields();
       this.fileList = [];
+      this.formLabelAlign = {};
       this.$emit("close");
     },
     fileChange(file, fileList) {

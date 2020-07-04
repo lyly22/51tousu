@@ -5,17 +5,18 @@
       <el-col :span="20" :offset="2">
         <el-container>
           <el-header>
-            <h2 class="mt40">{{info.title}}</h2>
-            <p>
+            <h2>{{info.title}}</h2>
+            <p class="center">
               <span class="userName">{{info.userName}}</span> 发布于
               <span class="time">{{info.create_time}}</span>
             </p>
-            <p class="mt20 content">{{info.content}}</p>
-            <p v-for="(v,i) in info.fileUrl" :key="i">
-              <img :src="v" width="300" />
-            </p>
           </el-header>
-          <el-main></el-main>
+          <el-main class="mt20">
+            <p class="content">{{info.content}}</p>
+            <p v-for="(v,i) in info.fileUrl" :key="i" class="center">
+              <img :src="v" width="500" />
+            </p>
+          </el-main>
         </el-container>
       </el-col>
     </el-row>
@@ -23,7 +24,7 @@
 </template>
 
 <script>
-import axios from "axios";
+import { getBlog } from "@/api/blog.js";
 import { dateFormat } from "../js/util";
 export default {
   name: "blog",
@@ -39,25 +40,17 @@ export default {
   methods: {
     getDetail() {
       let that = this;
-      axios
-        .get("http://127.0.0.1:5000/blog", {
-          params: {
-            id: this.id
-          }
-        })
+      getBlog({
+        id: this.id
+      })
         .then(function(res) {
-          if (res.data.code === 0) {
-            that.info = res.data.data;
+          if (res.code === 0) {
+            that.info = res.data;
             that.info.create_time = dateFormat(
               "YYYY-mm-dd HH:MM",
               new Date(that.info.create_time + "")
             );
             that.info.fileUrl = that.info.fileUrl.split(",");
-          } else {
-            that.$message({
-              message: res.data.msg,
-              type: "error"
-            });
           }
         })
         .catch(function(err) {
@@ -80,7 +73,9 @@ export default {
   height: 100%;
   background: #fff;
   z-index: 99;
-  text-align: center;
+  h2 {
+    text-align: center;
+  }
   .userName {
     color: #141b23;
   }
