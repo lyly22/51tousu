@@ -32,26 +32,28 @@ server.context.db = co(conn);
 //   ctx.set("Access-Control-Allow-Methods", "PUT, POST, GET, DELETE, OPTIONS");
 //   await next();
 // });
-
-router.post("/upload", async (ctx, next) => {
+const multer = require("koa-multer");
+//文件上传
+//配置
+var storage = multer.diskStorage({
+  //文件保存路径
+  destination: function (req, file, cb) {
+    cb(null, "public/upload");
+  },
+  //修改文件名称
+  filename: function (req, file, cb) {
+    var fileFormat = file.name.split("."); //以点分割成数组，数组的最后一项就是后缀名
+    cb(null, file.name + "." + fileFormat[fileFormat.length - 1]);
+  },
+});
+//加载配置
+var upload = multer({ storage: storage });
+router.post("/upload", upload.single("file"), async (ctx, next) => {
   const file = ctx.request.body.file;
-  let result = [];
-  file.forEach((v) => {
-    result.push("http://localhost:5000/upload/" + v.name);
-    // const reader = fs.createReadStream('v.name');
-    // const upStream = fs.createWriteStream(
-    //   path.join(__dirname, "public/upload" + `/${v.name}`),
-    //   {
-    //     flags: "w", // 默认读取
-    //     encoding: "utf8", // 默认utf8
-    //   }
-    // );
-    // reader.pipe(upStream);
-  });
   ctx.body = {
     code: 0,
     msg: "",
-    fileUrl: result, //返回文件名
+    fileUrl: "http://localhost:5000/upload/" + file.name, //返回文件名
   };
 });
 
@@ -130,7 +132,7 @@ router.post("/login", async (ctx, next) => {
 
 router.post("/addBlog", async (ctx, next) => {
   let { title, content, userId, fileUrl } = ctx.request.body;
-  fileUrl = fileUrl ? fileUrl.join(",") : "";
+  // fileUrl = fileUrl ? fileUrl.join(",") : "";
   try {
     ctx.db.query(
       "insert into blog (title, content, fileUrl, user_id) values (?, ?, ?,?)",

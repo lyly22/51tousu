@@ -10,7 +10,7 @@
           <el-form-item label="密码" prop="pwd">
             <el-input v-model="ruleForm.pwd"></el-input>
           </el-form-item>
-          <el-button type="primary" round @click="submit">登录</el-button>
+          <el-button type="primary" round @click="submit">登录</el-button><br>
           <router-link to="/register">
             <el-button type="text">注册</el-button>
           </router-link>

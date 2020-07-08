@@ -13,7 +13,7 @@
           <el-form-item label="确认密码" prop="checkPass">
             <el-input type="password" v-model="ruleForm.checkPass" autocomplete="off"></el-input>
           </el-form-item>
-          <el-button type="primary" round @click="submit">注册</el-button>
+          <el-button type="primary" round @click="submit">注册</el-button><br>
           <router-link to="/login">
             <el-button type="text">登录</el-button>
           </router-link>

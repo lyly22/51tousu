@@ -79,7 +79,11 @@ export default {
     },
     upload() {
       let that = this;
-      return upload({ file: this.fileList[0]})
+      let formData = new FormData();
+      formData.append("file", this.fileList[0]);
+      return upload(formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      })
         .then(res => {
           if (res.code === 0) {
             that.formLabelAlign.fileUrl = res.fileUrl;

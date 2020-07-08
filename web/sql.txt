@@ -84,4 +84,7 @@ mysql python flask node
 剩部署上线
 
 
-    
+:http-request="uploadSectionFile"
+formData = new FormData();
+formData.append(that.upload_name, file);
+this.$axios.post("/file/upload", formData, { headers: { 'Content-Type': 'multipart/form-data' } })
