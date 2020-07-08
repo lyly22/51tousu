@@ -20,4 +20,4 @@ selenium-debug.log
 /web/node_modules
 /koaapp/node_modules/
 /web/dist/
-/web/sql.txt
+/web/text.txt
