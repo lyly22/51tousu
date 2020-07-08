@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS `blog`(
    `user_id` INT NOT NULL,
    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
    is_top set('0', '1') DEFAULT '0'
+   fileUrl VARCHAR(100)
    PRIMARY KEY ( `id` )
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
