@@ -79,7 +79,14 @@ export default {
     },
     upload() {
       let that = this;
-      return upload({ file: this.fileList[0]})
+      let param = new FormData(); //创建form对象
+      param.append("file", this.fileList[0]); //通过append向form对象添加数据
+      console.log(param.get("file"));
+      console.log(this.fileList[0]);
+      console.log(param);
+      return upload(param, {
+        headers: { "Content-Type": "multipart/form-data" }
+      })
         .then(res => {
           if (res.code === 0) {
             that.formLabelAlign.fileUrl = res.fileUrl;

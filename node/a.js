@@ -22,16 +22,6 @@ let conn = mysql.createPool({
   database: "blog",
 });
 server.context.db = co(conn);
-
-// server.use(async (ctx, next) => {
-//   ctx.set("Access-Control-Allow-Origin", "*");
-//   ctx.set(
-//     "Access-Control-Allow-Headers",
-//     "Content-Type, Content-Length, Authorization, Accept, X-Requested-With, Current-Page"
-//   );
-//   ctx.set("Access-Control-Allow-Methods", "PUT, POST, GET, DELETE, OPTIONS");
-//   await next();
-// });
 const multer = require("koa-multer");
 //文件上传
 //配置
@@ -49,12 +39,34 @@ var storage = multer.diskStorage({
 //加载配置
 var upload = multer({ storage: storage });
 router.post("/upload", upload.single("file"), async (ctx, next) => {
+  console.log(ctx.request.body.file)
+  console.log(ctx.request.files)
   const file = ctx.request.body.file;
   ctx.body = {
     code: 0,
     msg: "",
     fileUrl: "http://localhost:5000/upload/" + file.name, //返回文件名
   };
+});
+
+router.post("/addBlog", async (ctx, next) => {
+  let { title, content, userId, fileUrl } = ctx.request.body;
+  // fileUrl = fileUrl ? fileUrl.join(",") : "";
+  try {
+    ctx.db.query(
+      "insert into blog (title, content, fileUrl, user_id) values (?, ?, ?,?)",
+      [title, content, fileUrl, userId]
+    );
+    ctx.body = {
+      code: 0,
+      msg: "创建成功",
+    };
+  } catch (e) {
+    ctx.body = {
+      code: -1,
+      msg: e + "",
+    };
+  }
 });
 
 router.get("/", async (ctx, next) => {
@@ -130,25 +142,6 @@ router.post("/login", async (ctx, next) => {
   }
 });
 
-router.post("/addBlog", async (ctx, next) => {
-  let { title, content, userId, fileUrl } = ctx.request.body;
-  // fileUrl = fileUrl ? fileUrl.join(",") : "";
-  try {
-    ctx.db.query(
-      "insert into blog (title, content, fileUrl, user_id) values (?, ?, ?,?)",
-      [title, content, fileUrl, userId]
-    );
-    ctx.body = {
-      code: 0,
-      msg: "创建成功",
-    };
-  } catch (e) {
-    ctx.body = {
-      code: -1,
-      msg: e + "",
-    };
-  }
-});
 
 router.post("/delBlog", async (ctx, next) => {
   let { id } = ctx.request.body;
