@@ -8,7 +8,7 @@
             <el-input v-model="ruleForm.name"></el-input>
           </el-form-item>
           <el-form-item label="密码" prop="pwd">
-            <el-input v-model="ruleForm.pwd"></el-input>
+            <el-input type="password" v-model="ruleForm.pwd"></el-input>
           </el-form-item>
           <el-button type="primary" round @click="submit">登录</el-button><br>
           <router-link to="/register">

@@ -39,8 +39,6 @@ var storage = multer.diskStorage({
 //加载配置
 var upload = multer({ storage: storage });
 router.post("/upload", upload.single("file"), async (ctx, next) => {
-  console.log(ctx.request.body.file)
-  console.log(ctx.request.files)
   const file = ctx.request.body.file;
   ctx.body = {
     code: 0,

@@ -8,7 +8,7 @@
             <el-input v-model="ruleForm.name"></el-input>
           </el-form-item>
           <el-form-item label="密码" prop="pwd">
-            <el-input v-model="ruleForm.pwd"></el-input>
+            <el-input type="password" v-model="ruleForm.pwd"></el-input>
           </el-form-item>
           <el-form-item label="确认密码" prop="checkPass">
             <el-input type="password" v-model="ruleForm.checkPass" autocomplete="off"></el-input>
